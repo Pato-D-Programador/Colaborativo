@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: bolson
+    volumes:
+      - ./data:/var/lib/mysql
+      - ./pueblosmalaga.sql:/docker-entrypoint-initdb.d/pueblosmalaga.sql
+      - ./federated.cnf:/etc/mysql/conf.d/federated.cnf
+    networks:
+      - mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    ports:
+      - "8084:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    depends_on:
+      - mysql
+    networks:
+      - mysql
+
+  web:
+    image: php:apache
+    container_name: web
+    ports:
+      - "8085:80"
+    volumes:
+      - ./www:/var/www/html
+    depends_on:
+      - mysql
+    networks:
+      - mysql
+
+networks:
+  mysql:
+    driver: bridge
+
